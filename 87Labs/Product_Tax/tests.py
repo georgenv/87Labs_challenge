@@ -1,8 +1,5 @@
 import json
-import pytest
 import requests
-
-from main import calculate_tax, create_model
 
 # The root url of the flask app
 url = 'http://127.0.0.1:5000' 
