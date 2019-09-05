@@ -1,9 +1,9 @@
 from flask import jsonify, request
+from bson.json_util import dumps
 from app import app, mongo
-# from Product import Product
 
 
-def _calculate_tax(product):
+def calculate_tax(product):
     tax = 0
     volume = product['height'] * product['width'] * product['length']
     calculated_weight = volume * 300
@@ -16,7 +16,7 @@ def _calculate_tax(product):
     return tax
 
 
-def _create_model(request):
+def create_model(request):
     _json = request.json
 
     _name = _json['name']
@@ -37,18 +37,19 @@ def _create_model(request):
 
     return _product
 
+
 @app.route('/tax', methods=['POST'])
-def calculate_tax():
-    product = _create_model(request)
-    response = {'tax': str(_calculate_tax(product)).replace('.', ',')}
+def get_tax():
+    product = create_model(request)
+    response = {'tax': str(calculate_tax(product)).replace('.', ',')}
 
     return response
 
 
 @app.route('/track', methods=['POST'])
 def add_product():
-    product = _create_model(request)
-    product['tax'] = _calculate_tax(product)
+    product = create_model(request)
+    product['tax'] = calculate_tax(product)
 
     products_quantity = mongo.db.products.count()
 
@@ -56,10 +57,18 @@ def add_product():
         product['_id'] = 0
     else:
         product['_id'] = products_quantity
-    
+
     query = mongo.db.products.insert_one(product)
 
     return {'_id': query.inserted_id}
+
+
+@app.route('/track/<id>', methods=['GET'])
+def product(id):
+    query = mongo.db.products.find_one({"_id": int(id)})
+    resp = dumps(query)
+
+    return resp
 
 
 if __name__ == '__main__':
