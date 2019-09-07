@@ -4,6 +4,16 @@ from app import app, mongo
 
 
 def calculate_tax(product):
+    """
+    Calculate impost on a product
+
+    Params:
+        product (dict): dictionary containing product attributes
+
+    Returns:
+        tax (float): float number representing the impost's value
+    """
+
     tax = 0
     volume = product['height'] * product['width'] * product['length']
     calculated_weight = volume * 300
@@ -17,6 +27,16 @@ def calculate_tax(product):
 
 
 def create_model(request):
+    """
+    Creates a dictionary representing a product
+
+    Params:
+        request (LocalProxy): request containing the body of request
+
+    Returns:
+        _product (dict): product model
+    """
+
     _json = request.json
 
     _name = _json['name']
@@ -40,6 +60,15 @@ def create_model(request):
 
 @app.route('/tax', methods=['POST'])
 def get_tax():
+    """
+    Returns the impost's value for the product from request
+
+    Params:
+        payload (json): product
+
+    Returns:
+        response (dict): tax value
+    """
     product = create_model(request)
     response = {'tax': str(calculate_tax(product)).replace('.', ',')}
 
@@ -48,6 +77,15 @@ def get_tax():
 
 @app.route('/track', methods=['POST'])
 def add_product():
+    """
+    Adds product on database
+
+    Params:
+        payload (json): product
+
+    Returns:
+        _id (int): just added product id in database 
+    """
     product = create_model(request)
     product['tax'] = calculate_tax(product)
 
@@ -65,6 +103,15 @@ def add_product():
 
 @app.route('/track/<id>', methods=['GET'])
 def product(id):
+    """
+    Searches for a product according to the id provided at url
+
+    Params:
+        id (str): id requested
+
+    Returns:
+        resp (json): product matching requested id
+    """
     query = mongo.db.products.find_one({"_id": int(id)})
     resp = dumps(query)
 
